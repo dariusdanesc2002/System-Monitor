@@ -1,0 +1,1 @@
+/usr/bin/c++ CMakeFiles/monitor.dir/src/main.cpp.o CMakeFiles/monitor.dir/src/display.cpp.o CMakeFiles/monitor.dir/src/linuxParser.cpp.o -o monitor  -lcurses /usr/lib/x86_64-linux-gnu/libform.so 

@@ -1,3 +1,0 @@
-/home/darius/Htop_Project/system-monitor/build/CMakeFiles/monitor.dir
-/home/darius/Htop_Project/system-monitor/build/CMakeFiles/edit_cache.dir
-/home/darius/Htop_Project/system-monitor/build/CMakeFiles/rebuild_cache.dir

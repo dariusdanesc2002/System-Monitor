@@ -33,7 +33,7 @@ Display::~Display() {
 void Display::Run(System& system, Processor& processor) {
 
 
-    // this while will run until the user press ctrl + c
+    // this while will run until the user press ctrl + c / ctrl + z /  q
     while (1) {
 
         char ch = wgetch(systemWindow);

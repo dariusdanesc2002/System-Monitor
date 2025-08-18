@@ -26,6 +26,12 @@ add_executable(monitor
   src/display.cpp
         include/linuxParser.h
         src/linuxParser.cpp
+        include/system.h
+        src/system.cpp
+        include/processor.h
+        src/processor.cpp
+        include/process.h
+        src/process.cpp
 )
 
 # Tell the compiler where to look for our header files.

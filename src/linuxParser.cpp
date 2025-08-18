@@ -7,6 +7,10 @@
 #include <iomanip> // for setw and setfill
 #include <cmath>
 #include <filesystem>
+#include <unistd.h>
+#include <system.h>
+#include <unistd.h>
+
 using namespace std;
 
 // SYSTEM
@@ -98,7 +102,7 @@ int LinuxParser::runningProcesses() {
     return number;
 }
 
-string LinuxParser::upTime() {
+void LinuxParser::upTime(long& upTime, string& upTimeString) {
     ifstream stream(kProcDirectory + kUptimeFilename);
     string line{};
     string hours{};
@@ -111,7 +115,7 @@ string LinuxParser::upTime() {
 
     if (!stream) {
         printf("The file %s could not be opened", (kProcDirectory + kUptimeFilename).c_str());
-        return {};
+        return ;
     }else {
         while (getline(stream, line)) {
             istringstream lineStream(line);
@@ -124,10 +128,8 @@ string LinuxParser::upTime() {
 
         stringstream timeStream;
         timeStream << setw(2) << setfill('0') << hours << ":" << setw(2) << setfill('0') << minutes << ":" << setw(2) << setfill('0') << seconds;
-
-
-        return timeStream.str();
-
+        upTime = sysUptime;
+        upTimeString = timeStream.str();
     }
 }
 
@@ -189,13 +191,13 @@ vector<int> LinuxParser::Pids() {
 }
 
 string LinuxParser::Uid(int pid) {
-    ifstream stream(kProcDirectory + to_string(pid) + kStatFilename);
+    ifstream stream(kProcDirectory + to_string(pid) + kStatusFilename);
     string key{};
     string line{};
     string number  = "-1";
 
     if (!stream) {
-        printf("The file %s could not be oppend", (kProcDirectory + to_string(pid) + kStatFilename).c_str());
+        printf("The file %s could not be opened", (kProcDirectory + to_string(pid) + kStatFilename).c_str());
         return number;
     }
 
@@ -211,6 +213,181 @@ string LinuxParser::Uid(int pid) {
     return number;
 
 }
+
+string LinuxParser::User(int pid) {
+    ifstream stream(kPasswordPath);
+    string line{};
+    string number{};
+    string username{};
+    string uid = LinuxParser::Uid(pid);
+    if (!stream) {
+        printf("The file %s could not be opened ", (kPasswordPath).c_str());
+    }
+    while (getline(stream, line)) {
+        replace(line.begin(), line.end(), ':',' ');
+        replace(line.begin(), line.end(), 'x',' ');
+        istringstream lineStream(line);
+        while (lineStream >> username >> number) {
+            if (number == uid)
+                return username;
+        }
+    }
+
+    return username;
+}
+
+string LinuxParser::Ram(int pid) {
+    ifstream stream(kProcDirectory + to_string(pid) + kStatusFilename);
+    string line{};
+    string key;
+    int value;
+    if (!stream) {
+        printf("The file %s could not be opened ", (kProcDirectory + to_string(pid) + kStatusFilename).c_str());
+    }
+
+    while (getline(stream, line)) {
+        istringstream lineStream(line);
+        while (lineStream >> key >> value) {
+            if (key == "Kthread:" && value == 1) {
+                return "[0]";
+            }
+            if (key == "VmSize:") {
+                value = value  / 1024; // transform from KB to MB
+                return to_string(value);
+            }
+        }
+    }
+    return {};
+}
+
+string LinuxParser::upTime(int pid, long int sysUpTime) {
+    ifstream stream(kProcDirectory + to_string(pid) + kStatFilename);
+    string line{};
+    string key{};
+
+    if (!stream) {
+        printf("The file %s could not be opened ", (kProcDirectory + to_string(pid) + kStatFilename).c_str());
+        return key;
+    }
+
+    while (getline(stream, line)) {
+        istringstream lineStream(line);
+        for (int i = 0; i < 21; i++) {
+            lineStream >> key;
+        }
+        lineStream >> key;
+    }
+    // DE REVIZUIT LOGICA DUPA IMPLEMENTAREA CLASELOR
+    long clockTick = stol(key);
+    clockTick = clockTick / sysconf(_SC_CLK_TCK);
+    long processUpTime = sysUpTime - clockTick;
+    string hours{};
+    string minutes{};
+    string seconds{};
+    hours = to_string(processUpTime / 3600);
+    minutes = to_string((processUpTime % 3600) / 60);
+    seconds = to_string(((processUpTime % 3600) % 60));
+
+    stringstream timeStream;
+    timeStream << setw(2) << setfill('0') << hours << ":" << setw(2) << setfill('0') << minutes << ":" << setw(2) << setfill('0') << seconds;
+    // cout << timeStream.str() << endl;
+    return timeStream.str();
+
+}
+
+string LinuxParser::command(int pid) {
+    ifstream stream(kProcDirectory + to_string(pid) + kCmdlineFilename);
+    string line;
+    if (!stream) {
+        printf("The file %s could not be opened ", (kProcDirectory + to_string(pid) + kCmdlineFilename).c_str());
+        return {};
+    }
+    getline(stream, line);
+    return line;
+
+}
+
+string LinuxParser::processCpuUtilization(int pid, long int sysUpTime) {
+    ifstream stream(kProcDirectory + to_string(pid) + kStatFilename);
+    string line{};
+    string utime, stime, cutime, cstime;
+    long starttime;
+    string number;
+    if (!stream) {
+        printf("The file %s could not be opened", (kProcDirectory + to_string(pid) + kStatFilename).c_str());
+        return "0%";
+    }
+    getline(stream, line);
+    istringstream streamLine(line);
+    for (int i = 1; i < 22; i++) {
+        streamLine >> number;
+        if (i == 14)
+            utime = number;
+        if (i == 15)
+            stime = number;
+        if (i == 16)
+            cutime = number;
+        if (i == 17)
+            cstime = number;
+    }
+    streamLine >> starttime;
+    long total_time = stol(utime) + stol(stime) + stol(cutime) + stol(cstime);
+    total_time /= sysconf(_SC_CLK_TCK);
+    starttime /= sysconf(_SC_CLK_TCK);
+    long seconds = sysUpTime - starttime;
+    double cpuUsage = (static_cast<double>(total_time) / seconds);
+
+    return to_string(cpuUsage) + "%";
+}
+
+pair<double, double> LinuxParser::cpuSnapshot() {
+    ifstream stream(kProcDirectory + kStatFilename);
+    string line{};
+    string cpu;
+    double number;
+    vector<double> values(10,0);
+    pair<double, double> snapshot;
+    if (!stream) {
+        printf("the file %s could not be openead", (kProcDirectory + kStatFilename).c_str());
+        return snapshot;
+    }
+    getline(stream, line);
+    istringstream streamLine(line);
+    streamLine >> cpu;
+
+    for (int i = 0; i < 10; i++) {
+        streamLine >> number;
+        values[i] = number;
+    }
+
+    double idleTime;
+    double activeTIme;
+    double totalTime;
+
+    activeTIme = values[0] + values[1] + values[2] + values[5] + values[6] + values[7]; // user + nice + system + irq + softirq + steal
+    idleTime = values[3] + values[4]; // iowait + idle
+    totalTime = idleTime + activeTIme;
+    snapshot.first = activeTIme;
+    snapshot.second = totalTime;
+
+    return snapshot;
+
+}
+
+double LinuxParser::cpuUtilization() {
+    pair<double, double> snapshot1 = LinuxParser::cpuSnapshot();
+    sleep(1);
+    pair<double, double> snapshot2 = LinuxParser::cpuSnapshot();
+
+    return (snapshot2.first - snapshot1.first)/(snapshot2.second - snapshot1.second);
+}
+
+
+
+
+
+
+
 
 
 

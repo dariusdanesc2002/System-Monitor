@@ -4,6 +4,9 @@
 
 #include <ncurses.h>
 #include <string>
+#include <system.h>
+
+#include "processor.h"
 
 using namespace std;
 
@@ -17,11 +20,11 @@ public:
     ~Display();
     // his function will create the window, and will call the other functions
     // showSystem and showProcesses in order to update the window acordingly.
-    void Run();
+    void Run(System& system, Processor& processor);
 
 private:
-    void showSystem();
-    void showProcesses();
+    void showSystem(System& system, Processor& processor);
+    void showProcesses(System& system);
     string progressBar(float percent);
 };
 

@@ -1,0 +1,13 @@
+# IDE configuration files
+.idea/
+*.iml
+
+# Build output
+build/
+*.o
+*.a
+*.so
+
+# Executables from your src folder (if any)
+my_program
+monitor

@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 
+#include "system.h"
 
 using namespace std;
 
@@ -26,7 +27,7 @@ namespace LinuxParser {
 
     // System
     float memoryUtilization();
-    string upTime();
+    void upTime(long& upTime, string& upTimeString);
     int totalProcesses();
     int runningProcesses();
     string operatingSystem();
@@ -34,11 +35,13 @@ namespace LinuxParser {
 
     // Processes
     vector<int> Pids();
-    std::string Command(int pid);
-    std::string Ram(int pid);
+    string command(int pid);
+    string Ram(int pid);
     string Uid(int pid);
-    std::string User(int pid);
-    long int UpTime(int pid);
+    string User(int pid);
+    string upTime(int pid, long int sysUpTime);
+    string processCpuUtilization(int pid, long int sysUpTime);
+
 
     // CPU
     enum CPUStates {
@@ -53,8 +56,8 @@ namespace LinuxParser {
         kGuest_,
         kGuestNice_
       };
-    // Processor
-    std::vector<std::string> CpuUtilization();
+    pair<double, double> cpuSnapshot(); // returns a pair  for the current active time and total time
+    double cpuUtilization();
     long Jiffies();
     long ActiveJiffies();
     long ActiveJiffies(int pid);

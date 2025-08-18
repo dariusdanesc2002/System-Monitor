@@ -130,8 +130,6 @@ void Display::showProcesses(System& system) {
         process.setRam(pid);
         process.setUpTime(pid,sysUpTime);
         process.setCommand(pid);
-        //You need to take care of the fact that the cpu utilization has already been multiplied by 100.
-        // Clear the line
         mvwprintw(processesWindow, ++row, pid_column, (string(processesWindow->_maxx-2, ' ').c_str()));
 
         mvwprintw(processesWindow, row, pid_column, "%s", to_string(process.getPid()).c_str());

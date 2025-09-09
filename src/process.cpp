@@ -53,5 +53,11 @@ string Process::getCpuUtilization() const {
     return this->CPU;
 }
 
+bool Process::operator<(Process &process) const {
+
+    return stol(this->getRam()) > stol(process.getRam());
+}
+
+
 
 

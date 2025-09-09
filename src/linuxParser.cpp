@@ -249,7 +249,7 @@ string LinuxParser::Ram(int pid) {
         istringstream lineStream(line);
         while (lineStream >> key >> value) {
             if (key == "Kthread:" && value == 1) {
-                return "[0]";
+                return "0";
             }
             if (key == "VmSize:") {
                 value = value  / 1024; // transform from KB to MB
@@ -335,7 +335,7 @@ string LinuxParser::processCpuUtilization(int pid, long int sysUpTime) {
     total_time /= sysconf(_SC_CLK_TCK);
     starttime /= sysconf(_SC_CLK_TCK);
     long seconds = sysUpTime - starttime;
-    double cpuUsage = (static_cast<double>(total_time) / seconds);
+    double cpuUsage = (static_cast<double>(total_time) / seconds) ;
 
     return to_string(cpuUsage) + "%";
 }

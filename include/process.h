@@ -24,6 +24,7 @@ public:
     string getCommand() const;
     string getRam() const;
     string getUpTime() const;
+    bool operator<(Process& process) const;
 
 private:
     int pid = 0;

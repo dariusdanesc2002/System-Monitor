@@ -14,6 +14,7 @@ class Display {
 private:
     WINDOW* systemWindow = nullptr;
     WINDOW* processesWindow = nullptr;
+    int scrollOffset = 0;
 
 public:
     Display();
@@ -21,7 +22,9 @@ public:
     // his function will create the window, and will call the other functions
     // showSystem and showProcesses in order to update the window acordingly.
     void Run(System& system, Processor& processor);
-
+    void increaseOffset();
+    void decreaseOffset();
+    int getOffset() const;
 private:
     void showSystem(System& system, Processor& processor);
     void showProcesses(System& system);

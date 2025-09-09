@@ -49,7 +49,7 @@ void Display::Run(System& system, Processor& processor) {
 
 
     // this while will run until the user press ctrl + c / ctrl + z /  q
-    while (1) {
+    while (true) {
 
         int ch = wgetch(this->processesWindow);
 
@@ -162,26 +162,18 @@ void Display::showProcesses(System& system) {
     mvwprintw(processesWindow, row, time_column, "TIME+");
     mvwprintw(processesWindow, row, command_column, "COMMAND");
     // wattroff(window, COLOR_PAIR(2));
-    for (int i = 0; i < n; ++i) {
-        int pid = pids[i];
-        long int sysUpTime = system.getUpTime();
-        Process process;
-        process.setPid(pid);
-        process.setUser(pid);
-        process.setCpuUtilization(pid, sysUpTime);
-        process.setRam(pid);
-        process.setUpTime(pid,sysUpTime);
-        process.setCommand(pid);
+
         int max_rows = processesWindow->_maxy - 2;
-        getProcesses(pids, sysUpTime, processes);
-        sort(processes.begin(), processes.end());
+
+
         for (int i = 0; i < max_rows; ++i) {
 
             if (i + scrollOffset > pids.size())
                 break;
 
             int pid = pids[i + scrollOffset];
-
+            long int sysUpTime = system.getUpTime();
+            getProcesses(pids, sysUpTime, processes);
             Process process;
             process.setPid(pid);
             process.setUser(pid);
@@ -189,7 +181,7 @@ void Display::showProcesses(System& system) {
             process.setRam(pid);
             process.setUpTime(pid,sysUpTime);
             process.setCommand(pid);
-
+            sort(processes.begin(), processes.end());
             mvwprintw(processesWindow, ++row, pid_column, (string(processesWindow->_maxx-2, ' ').c_str()));
 
             mvwprintw(processesWindow, row, pid_column, "%s", to_string(processes[i + scrollOffset].getPid()).c_str());
@@ -202,7 +194,6 @@ void Display::showProcesses(System& system) {
 
             // UPDATE
         }
-    }
 }
 
 

@@ -134,35 +134,37 @@ void LinuxParser::upTime(long& upTime, string& upTimeString) {
 }
 
 float LinuxParser::memoryUtilization() {
-    ifstream stream(kProcDirectory + kMeminfoFilename);
-    string line{};
-    string name;
-    float mem;
-    float MemTotal{};
-    float MemFree{};
+    long total_mem = 0;
+    long free_mem = 0;
+    long buffers_mem = 0;
+    long cached_mem = 0;
 
-    if (!stream) {
-        printf("The file %s could not be opened", (kProcDirectory + kMeminfoFilename).c_str());
-        return 0;
-    }else {
-        while (getline(stream, line)) {
-            istringstream lineStream(line);
-
-            while (lineStream >> name >> mem) {
-                if (name == "MemTotal:") {
-                    MemTotal = mem;
-                }
-                if (name == "MemFree:") {
-                    MemFree = mem;
-                    break;
-                }
-            }
-            if (MemFree != 0)
-                break;
+    string token;
+    ifstream file("/proc/meminfo");
+    while (file >> token) {
+        string str_temp;
+        if (token == "MemTotal:") {
+            file >> str_temp;
+            total_mem = stol(str_temp);
+        } else if (token == "MemFree:") {
+            file >> str_temp;
+            free_mem = stol(str_temp);
+        } else if (token == "Buffers:") {
+            file >> str_temp;
+            buffers_mem = stol(str_temp);
+        } else if (token == "Cached:") {
+            file >> str_temp;
+            cached_mem = stol(str_temp);
         }
-        float percent = trunc((100 * (MemTotal - MemFree) )/ MemTotal * 100);
-        return percent / 10000; // returns the percent ex 0.21
+
+        // Ignore the rest of the line
+        file.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     }
+
+    long use_mem = free_mem + buffers_mem + cached_mem;
+    float memory_utilization = (total_mem -  use_mem) / float(total_mem);
+
+    return memory_utilization;
 
 }
 
@@ -243,6 +245,7 @@ string LinuxParser::Ram(int pid) {
     int value;
     if (!stream) {
         printf("The file %s could not be opened ", (kProcDirectory + to_string(pid) + kStatusFilename).c_str());
+        return "0";
     }
 
     while (getline(stream, line)) {
@@ -257,7 +260,7 @@ string LinuxParser::Ram(int pid) {
             }
         }
     }
-    return {};
+    return "0";
 }
 
 string LinuxParser::upTime(int pid, long int sysUpTime) {

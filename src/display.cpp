@@ -164,7 +164,8 @@ void Display::showProcesses(System& system) {
     // wattroff(window, COLOR_PAIR(2));
 
         int max_rows = processesWindow->_maxy - 2;
-
+        long int sysUpTime = system.getUpTime();
+        getProcesses(pids, sysUpTime, processes);
 
         for (int i = 0; i < max_rows; ++i) {
 
@@ -172,16 +173,16 @@ void Display::showProcesses(System& system) {
                 break;
 
             int pid = pids[i + scrollOffset];
-            long int sysUpTime = system.getUpTime();
-            getProcesses(pids, sysUpTime, processes);
-            Process process;
-            process.setPid(pid);
-            process.setUser(pid);
-            process.setCpuUtilization(pid, sysUpTime);
-            process.setRam(pid);
-            process.setUpTime(pid,sysUpTime);
-            process.setCommand(pid);
+
+            // Process process;
+            // process.setPid(pid);
+            // process.setUser(pid);
+            // process.setCpuUtilization(pid, sysUpTime);
+            // process.setRam(pid);
+            // process.setUpTime(pid,sysUpTime);
+            // process.setCommand(pid);
             sort(processes.begin(), processes.end());
+
             mvwprintw(processesWindow, ++row, pid_column, (string(processesWindow->_maxx-2, ' ').c_str()));
 
             mvwprintw(processesWindow, row, pid_column, "%s", to_string(processes[i + scrollOffset].getPid()).c_str());
